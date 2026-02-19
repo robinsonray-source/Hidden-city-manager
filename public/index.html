@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hidden City Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--surface:#141414;--surface2:#1e1e1e;--border:#2a2a2a;--accent:#e8c547;--text:#f0f0f0;--muted:#888;--success:#2ecc71;--error:#e74c3c}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-family:'Bebas Neue',cursive;font-size:24px;letter-spacing:3px;color:var(--accent)}
+.tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border)}
+.tab{flex:1;padding:12px 8px;text-align:center;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.content{padding:16px;max-width:800px;margin:0 auto}
+.btn{background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px 16px;font-family:'Bebas Neue',cursive;font-size:16px;letter-spacing:1px;cursor:pointer}
+.btn-sm{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px 12px;font-size:12px;cursor:pointer}
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;margin-top:16px}
+.product-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color 0.2s}
+.product-card:hover{border-color:var(--accent)}
+.product-img{width:100%;aspect-ratio:1;object-fit:cover;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:32px}
+.product-img img{width:100%;height:100%;object-fit:cover}
+.product-info{padding:10px}
+.product-name{font-size:13px;font-weight:500;line-height:1.3;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.product-price{font-size:12px;color:var(--accent);font-family:monospace}
+.back-btn{background:none;border:none;color:var(--accent);font-size:13px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-bottom:16px;padding:0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px}
+.card-section{padding:16px;border-bottom:1px solid var(--border)}
+.card-section:last-child{border-bottom:none}
+.label{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none}
+.input:focus{border-color:var(--accent)}
+textarea.input{resize:vertical;min-height:80px}
+.char-count{font-size:11px;color:var(--muted);margin-top:4px}
+.images-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.img-thumb{aspect-ratio:1;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative}
+.img-thumb img{width:100%;height:100%;object-fit:cover}
+.remove-img{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.7);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer}
+.add-img{aspect-ratio:1;background:var(--surface2);border:2px dashed var(--border);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:24px}
+.add-img span{font-size:10px;margin-top:4px}
+.save-row{display:flex;gap:8px;margin-top:4px}
+.save-btn{flex:1;background:var(--accent);color:#000;border:none;border-radius:8px;padding:13px;font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:2px;cursor:pointer}
+.ai-btn{flex:1;background:var(--surface2);color:var(--accent);border:1px solid var(--accent);border-radius:8px;padding:13px;font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:2px;cursor:pointer}
+.chat-panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.chat-header{padding:12px 16px;border-bottom:1px solid var(--border);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
+.dot{width:7px;height:7px;background:var(--success);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.chat-messages{padding:16px;min-height:100px;max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.msg{padding:10px 14px;border-radius:8px;font-size:14px;line-height:1.5;max-width:90%}
+.msg-user{background:var(--accent);color:#000;align-self:flex-end;font-weight:500}
+.msg-claude{background:var(--surface2);border:1px solid var(--border);align-self:flex-start}
+.msg-error{background:rgba(231,76,60,0.15);border:1px solid var(--error);color:var(--error);align-self:flex-start;font-size:13px}
+.suggestions{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 12px}
+.suggestion{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--muted);cursor:pointer}
+.chat-input-row{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border)}
+.chat-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;resize:none;min-height:44px}
+.chat-input:focus{border-color:var(--accent)}
+.send-btn{background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px 16px;font-family:'Bebas Neue',cursive;font-size:16px;cursor:pointer}
+.send-btn:disabled{opacity:0.4}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:48px 24px;color:var(--muted)}
+.empty .icon{font-size:40px;margin-bottom:12px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--accent);color:var(--accent);padding:10px 20px;border-radius:8px;font-size:13px;z-index:999;transition:transform 0.3s;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+#file-input{display:none}
+.header-btns{display:flex;gap:8px}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">HIDDEN CITY</div>
+  <div class="header-btns">
+    <button class="btn-sm" onclick="loadProducts()">↻ Refresh</button>
+  </div>
+</header>
+<div class="tabs">
+  <div class="tab active" id="tab-products-btn" onclick="switchTab('products')">Products</div>
+  <div class="tab" id="tab-chat-btn" onclick="switchTab('chat')">Ask Claude</div>
+</div>
+<div class="content">
+  <div id="tab-products">
+    <div id="product-list">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div style="font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:2px;color:var(--accent)">Products</div>
+        <div id="product-count" style="font-size:12px;color:var(--muted)"></div>
+      </div>
+      <div id="products-grid" class="products-grid">
+        <div class="empty"><div class="icon">🖤</div><p>Loading...</p></div>
+      </div>
+    </div>
+    <div id="product-detail" style="display:none">
+      <button class="back-btn" onclick="showList()">← Back</button>
+      <div id="detail-content"></div>
+    </div>
+  </div>
+  <div id="tab-chat" style="display:none">
+    <div class="chat-panel">
+      <div class="chat-header"><div class="dot"></div>Claude — Store Assistant</div>
+      <div class="chat-messages" id="chat-messages">
+        <div class="msg msg-claude">Hey! I'm your Hidden City store assistant. I can help with products, SEO, descriptions and more. What do you need?</div>
+      </div>
+      <div class="suggestions">
+        <div class="suggestion" onclick="fillAndSend('Show all my products')">Show all products</div>
+        <div class="suggestion" onclick="fillAndSend('Which products have no description?')">Missing descriptions</div>
+        <div class="suggestion" onclick="fillAndSend('What products are drafts?')">Draft products</div>
+        <div class="suggestion" onclick="fillAndSend('Suggest SEO improvements for my store')">SEO tips</div>
+      </div>
+      <div class="chat-input-row">
+        <textarea class="chat-input" id="chat-input" placeholder="Ask Claude anything about your store..." rows="1"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"
+          oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendChat()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<input type="file" id="file-input" accept="image/*" multiple>
+
+<script>
+let products = [];
+let currentProduct = null;
+let chatHistory = [];
+
+window.onload = () => loadProducts();
+
+async function loadProducts() {
+  document.getElementById('products-grid').innerHTML = '<div class="empty"><span class="spinner"></span><p>Loading products...</p></div>';
+  try {
+    const res = await fetch('/api/products');
+    if (!res.ok) throw new Error('Failed to fetch: ' + res.status);
+    const data = await res.json();
+    products = data.products || [];
+    renderProducts();
+  } catch(e) {
+    document.getElementById('products-grid').innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>Error: ${e.message}</p></div>`;
+  }
+}
+
+function renderProducts() {
+  const grid = document.getElementById('products-grid');
+  document.getElementById('product-count').textContent = products.length + ' products';
+  if (!products.length) { grid.innerHTML = '<div class="empty"><div class="icon">🖤</div><p>No products found</p></div>'; return; }
+  grid.innerHTML = products.map(p => {
+    const img = p.images && p.images[0] ? `<img src="${p.images[0].src}" loading="lazy">` : '🖤';
+    const price = p.variants && p.variants[0] ? '$' + p.variants[0].price : '';
+    return `<div class="product-card" onclick="openProduct(${p.id})">
+      <div class="product-img">${img}</div>
+      <div class="product-info">
+        <div class="product-name">${p.title}</div>
+        <div class="product-price">${price}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openProduct(id) {
+  currentProduct = products.find(p => p.id === id);
+  if (!currentProduct) return;
+  document.getElementById('product-list').style.display = 'none';
+  document.getElementById('product-detail').style.display = 'block';
+  renderDetail();
+}
+
+function renderDetail() {
+  const p = currentProduct;
+  const imgs = (p.images || []).map(img =>
+    `<div class="img-thumb"><img src="${img.src}"><button class="remove-img" onclick="removeImg(${img.id})">×</button></div>`
+  ).join('');
+  const price = p.variants && p.variants[0] ? p.variants[0].price : '';
+  const seoTitle = p.metafields_global_title_tag || '';
+  const seoDesc = p.metafields_global_description_tag || '';
+  const desc = stripHtml(p.body_html || '');
+
+  document.getElementById('detail-content').innerHTML = `
+    <div class="card">
+      <div class="card-section"><div class="label">Title</div><input class="input" id="e-title" value="${esc(p.title)}"></div>
+      <div class="card-section"><div class="label">Description</div><textarea class="input" id="e-desc" rows="4">${esc(desc)}</textarea></div>
+      <div class="card-section"><div class="label">Price</div><input class="input" id="e-price" type="number" step="0.01" value="${price}"></div>
+    </div>
+    <div class="card">
+      <div class="card-section">
+        <div class="label">Images</div>
+        <div class="images-grid">${imgs}<div class="add-img" onclick="document.getElementById('file-input').click()"><span>+</span><span>Add</span></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-section">
+        <div class="label">SEO Title <span style="font-size:10px">(Google)</span></div>
+        <input class="input" id="e-seo-title" value="${esc(seoTitle)}" placeholder="Leave blank to use product title" oninput="document.getElementById('stc').textContent=this.value.length+'/70'">
+        <div class="char-count" id="stc">${seoTitle.length}/70</div>
+      </div>
+      <div class="card-section">
+        <div class="label">SEO Description <span style="font-size:10px">(Google)</span></div>
+        <textarea class="input" id="e-seo-desc" rows="3" placeholder="Describe for search engines..." oninput="document.getElementById('sdc').textContent=this.value.length+'/160'">${esc(seoDesc)}</textarea>
+        <div class="char-count" id="sdc">${seoDesc.length}/160</div>
+      </div>
+    </div>
+    <div class="save-row">
+      <button class="save-btn" onclick="saveProduct()">SAVE</button>
+      <button class="ai-btn" onclick="aiImprove()">✨ AI IMPROVE</button>
+    </div>`;
+}
+
+function showList() {
+  document.getElementById('product-list').style.display = 'block';
+  document.getElementById('product-detail').style.display = 'none';
+  currentProduct = null;
+}
+
+async function saveProduct() {
+  if (!currentProduct) return;
+  const body = { product: {
+    id: currentProduct.id,
+    title: document.getElementById('e-title').value,
+    body_html: document.getElementById('e-desc').value,
+    metafields_global_title_tag: document.getElementById('e-seo-title').value,
+    metafields_global_description_tag: document.getElementById('e-seo-desc').value,
+  }};
+  const price = document.getElementById('e-price').value;
+  if (price && currentProduct.variants && currentProduct.variants[0]) {
+    body.product.variants = [{ id: currentProduct.variants[0].id, price: parseFloat(price).toFixed(2) }];
+  }
+  try {
+    const res = await fetch('/api/products/' + currentProduct.id, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (data.product) { currentProduct = data.product; const idx = products.findIndex(p => p.id === currentProduct.id); if (idx !== -1) products[idx] = currentProduct; showToast('✓ Saved!'); }
+  } catch(e) { showToast('Error: ' + e.message); }
+}
+
+function aiImprove() {
+  const title = document.getElementById('e-title').value;
+  const desc = document.getElementById('e-desc').value;
+  switchTab('chat');
+  fillAndSend(`Improve the SEO and description for this product:\nTitle: ${title}\nDescription: ${desc || '(none)'}\n\nGive me:\n1. Better product description (2-3 sentences, tattoo-artist focused)\n2. SEO title (max 60 chars)\n3. SEO meta description (max 155 chars)`);
+}
+
+document.getElementById('file-input').addEventListener('change', async function(e) {
+  const files = Array.from(e.target.files);
+  if (!files.length || !currentProduct) return;
+  for (const file of files) {
+    try {
+      const base64 = await new Promise((res,rej) => { const r = new FileReader(); r.onload = () => res(r.result.split(',')[1]); r.onerror = rej; r.readAsDataURL(file); });
+      await fetch('/api/products/' + currentProduct.id + '/images', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ image: { attachment: base64, filename: file.name } }) });
+      showToast('✓ Image uploaded!');
+    } catch(e) { showToast('Error uploading image'); }
+  }
+  const res = await fetch('/api/products/' + currentProduct.id);
+  const data = await res.json();
+  if (data.product) { currentProduct = data.product; renderDetail(); }
+  this.value = '';
+});
+
+async function removeImg(imageId) {
+  if (!confirm('Remove this image?')) return;
+  try {
+    await fetch('/api/products/' + currentProduct.id + '/images/' + imageId, { method: 'DELETE' });
+    const res = await fetch('/api/products/' + currentProduct.id);
+    const data = await res.json();
+    if (data.product) { currentProduct = data.product; renderDetail(); }
+    showToast('✓ Image removed');
+  } catch(e) { showToast('Error'); }
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.style.height = 'auto';
+  addMsg('user', text);
+  chatHistory.push({ role: 'user', content: text });
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true; btn.textContent = '...';
+  const loading = addMsg('claude', '<span class="spinner"></span>Thinking...');
+  try {
+    const system = `You are a store assistant for Hidden City Tattoo Goods. Current products: ${JSON.stringify(products.map(p => ({id:p.id,title:p.title,status:p.status,price:p.variants?.[0]?.price,images:p.images?.length||0})))}. Keep responses concise. User is on mobile.`;
+    const res = await fetch('/api/chat', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ system, messages: chatHistory }) });
+    const data = await res.json();
+    const reply = data.content[0].text;
+    loading.remove();
+    addMsg('claude', reply);
+    chatHistory.push({ role: 'assistant', content: reply });
+    if (chatHistory.length > 20) chatHistory = chatHistory.slice(-20);
+  } catch(e) { loading.remove(); addMsg('error', 'Error: ' + e.message); }
+  btn.disabled = false; btn.textContent = 'Send';
+}
+
+function addMsg(type, text) {
+  const c = document.getElementById('chat-messages');
+  const d = document.createElement('div');
+  d.className = 'msg msg-' + type;
+  d.innerHTML = text.replace(/\n/g, '<br>');
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+  return d;
+}
+
+function fillAndSend(text) { document.getElementById('chat-input').value = text; sendChat(); }
+
+function switchTab(tab) {
+  document.getElementById('tab-products').style.display = tab === 'products' ? 'block' : 'none';
+  document.getElementById('tab-chat').style.display = tab === 'chat' ? 'block' : 'none';
+  document.getElementById('tab-products-btn').className = 'tab' + (tab === 'products' ? ' active' : '');
+  document.getElementById('tab-chat-btn').className = 'tab' + (tab === 'chat' ? ' active' : '');
+}
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function stripHtml(h) { const d = document.createElement('div'); d.innerHTML = h; return d.textContent || ''; }
+function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
+</script>
+</body>
+</html>
